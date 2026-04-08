@@ -1,4 +1,4 @@
--- [[ DELTA V8 ULTIMATE - STABLE TOUCH BYPASS ]] --
+-- [[ DELTA V8 ULTIMATE - STABLE & BYPASS EDITION ]] --
 local lp = game:GetService("Players").LocalPlayer
 local runService = game:GetService("RunService")
 local uis = game:GetService("UserInputService")
@@ -11,11 +11,11 @@ local infJumpActive, orbitActive = false, false
 local orbitParts = {}
 
 -- Cleanup UI Lama
-if PlayerGui:FindFirstChild("DeltaV8_FlyFix") then PlayerGui["DeltaV8_FlyFix"]:Destroy() end
+if PlayerGui:FindFirstChild("DeltaV8_Ultimate") then PlayerGui["DeltaV8_Ultimate"]:Destroy() end
 
--- [[ GUI ]] --
+-- [[ GUI SYSTEM ]] --
 local ScreenGui = Instance.new("ScreenGui", PlayerGui)
-ScreenGui.Name = "DeltaV8_FlyFix"
+ScreenGui.Name = "DeltaV8_Ultimate"
 ScreenGui.ResetOnSpawn = false
 
 local function makeDraggable(frame, handle)
@@ -102,10 +102,10 @@ createBtn("FLY (SPACE=UP / Q=DOWN)", function(b)
 	end
 end)
 
--- LOGIKA TOUCH FLING (STABLE VERSION) --
+-- FITUR STABLE TOUCH FLING FIX --
 createBtn("STABLE TOUCH FLING", function(b)
 	if not firetouchinterest then 
-		b.Text = "BUTUH EXECUTOR!"; task.wait(1); b.Text = "STABLE TOUCH FLING"
+		b.Text = "BUTUH EXECUTOR (DELTA)!"; task.wait(1); b.Text = "STABLE TOUCH FLING"
 		return 
 	end
 
@@ -127,28 +127,32 @@ createBtn("STABLE TOUCH FLING", function(b)
 		local hrp = lp.Character.HumanoidRootPart
 		local oldPos = hrp.CFrame
 
-		-- Anchor Fisika (Biar Kita Gak Mental)
+		-- Anti-Recoil: Set Massless
+		for _, v in pairs(lp.Character:GetDescendants()) do
+			if v:IsA("BasePart") then v.Massless = true v.Velocity = Vector3.new(0,0,0) end
+		end
+
+		-- Paku Bumi (Anchor)
 		local anchorV = Instance.new("BodyVelocity", hrp)
 		anchorV.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
 		anchorV.Velocity = Vector3.new(0, 0, 0)
 
 		local anchorG = Instance.new("BodyGyro", hrp)
 		anchorG.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
-		anchorG.CFrame = oldPos
+		anchorG.CFrame = hrp.CFrame
 
 		task.spawn(function()
 			local start = tick()
-			while tick() - start < 1.8 do
+			while tick() - start < 1.5 do
 				runService.Heartbeat:Wait()
 				if target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
 					local tHRP = target.Character.HumanoidRootPart
 
-					-- Snapping & Rotasi Gila
-					hrp.CFrame = tHRP.CFrame * CFrame.Angles(math.rad(math.random(-180,180)), math.rad(math.random(-180,180)), 0)
-					hrp.RotVelocity = Vector3.new(0, 25000, 0)
+					-- Posisi mengambang dikit biar gak kejepit lantai
+					hrp.CFrame = tHRP.CFrame * CFrame.new(0, 0.5, 0) * CFrame.Angles(0, math.rad(tick()*5000 % 360), 0)
+					hrp.RotVelocity = Vector3.new(0, 35000, 0)
 
-					-- Brutal Touch Simulation (40x per frame)
-					for i = 1, 40 do
+					for i = 1, 50 do
 						firetouchinterest(hrp, tHRP, 0)
 						firetouchinterest(hrp, tHRP, 1)
 					end
@@ -156,11 +160,13 @@ createBtn("STABLE TOUCH FLING", function(b)
 			end
 
 			-- Cleanup
-			anchorV:Destroy()
-			anchorG:Destroy()
+			anchorV:Destroy(); anchorG:Destroy()
 			flingActive = false
-			hrp.RotVelocity = Vector3.new(0,0,0)
+			hrp.RotVelocity = Vector3.new(0,0,0); hrp.Velocity = Vector3.new(0,0,0)
 			hrp.CFrame = oldPos
+			for _, v in pairs(lp.Character:GetDescendants()) do
+				if v:IsA("BasePart") then v.Massless = false end
+			end
 			b.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
 		end)
 	end
@@ -215,4 +221,4 @@ uis.JumpRequest:Connect(function()
 	if infJumpActive and lp.Character:FindFirstChild("Humanoid") then lp.Character.Humanoid:ChangeState("Jumping") end
 end)
 
-print("DELTA V8 - STABLE BYPASS LOADED")
+print("DELTA V8 ULTIMATE - FULLY LOADED")
