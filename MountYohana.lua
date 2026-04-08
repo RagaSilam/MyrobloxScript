@@ -1,6 +1,6 @@
 -- [[ NGOHI HYBRID FINAL ABSOLUTE - TRUE FULL VERSION ]] --
 -- Fix: Anti-Adonis, Silent Scan, & Delta Mobile Optimization
--- STATUS: NO CUT VERSION / FULL INTEGRATED AI
+-- STATUS: NO CUT VERSION / FULL INTEGRATED AI + FORCE ACCESS LOGIC
 
 local lp = game:GetService("Players").LocalPlayer
 local runService = game:GetService("RunService")
@@ -36,13 +36,13 @@ Bypass()
 -- Menangkap argumen secara pasif tanpa hook FireServer agar tidak terdeteksi
 local CapturedArgs = {}
 task.spawn(function()
-    game.DescendantAdded:Connect(function(v)
-        if v:IsA("RemoteEvent") then
-            v.OnClientEvent:Connect(function(...)
-                CapturedArgs[v.Name] = {Args = {...}, Remote = v}
-            end)
-        end
-    end)
+	game.DescendantAdded:Connect(function(v)
+		if v:IsA("RemoteEvent") then
+			v.OnClientEvent:Connect(function(...)
+				CapturedArgs[v.Name] = {Args = {...}, Remote = v}
+			end)
+		end
+	end)
 end)
 
 -- Cleanup UI Lama
@@ -386,15 +386,15 @@ ActionTitle.Font = Enum.Font.Code
 ActionTitle.TextSize = 13
 
 local function Fire(rem, target, prop, val)
-    -- AI Manipulation Check: Jika ada argumen tertangkap, gunakan itu.
-    local sniffed = CapturedArgs[rem.Name]
+	-- AI Manipulation Check: Jika ada argumen tertangkap, gunakan itu.
+	local sniffed = CapturedArgs[rem.Name]
 	pcall(function() 
-        if sniffed then
-            rem:FireServer(target, unpack(sniffed.Args))
-        else
-            rem:FireServer(target, prop, val) 
-        end
-    end)
+		if sniffed then
+			rem:FireServer(unpack(sniffed.Args))
+		else
+			rem:FireServer(target, prop, val) 
+		end
+	end)
 end
 
 local killBtn = createBtn(ActionPanel, "KILL ALL", Color3.fromRGB(200, 0, 0), function()
@@ -443,6 +443,29 @@ local function SmartAIAnalysis(rem)
 	else return "SAFE", Color3.fromRGB(255, 50, 50) end
 end
 
+-- LOGIKA BARU: FORCE ACCESS UNTUK REMOTE HIJAU
+local function ForceAccess(rem)
+	StatusLabel.Text = "Status: FORCING ACCESS TO "..rem.Name.."..."
+	local data = CapturedArgs[rem.Name]
+
+	-- Strategi 1: Trigger Remote dengan Argumen Asli yang di-capture
+	if data then
+		pcall(function() rem:FireServer(unpack(data.Args)) end)
+	end
+
+	-- Strategi 2: Bruteforce Parameter Umum (VIP/Admin/Shop)
+	local n = rem.Name:lower()
+	if n:find("vip") or n:find("shop") or n:find("admin") or n:find("panel") then
+		pcall(function() rem:FireServer(true) end)
+		pcall(function() rem:FireServer("Unlock", true) end)
+		pcall(function() rem:FireServer(lp, "Admin") end)
+	end
+
+	StatusLabel.Text = "Status: ACCESS COMMAND SENT!"
+	task.wait(1)
+	StatusLabel.Text = "Status: Monitoring Response..."
+end
+
 local function ScanRemotes()
 	StatusLabel.Text = "AI Status: Deep Analyzing..."
 	for _, v in pairs(ScanScroll:GetChildren()) do if v:IsA("TextButton") then v:Destroy() end end
@@ -454,14 +477,20 @@ local function ScanRemotes()
 
 	for i, rem in ipairs(allRemotes) do
 		local status, color = SmartAIAnalysis(rem)
-        local sniffed = CapturedArgs[rem.Name] ~= nil
+		local sniffed = CapturedArgs[rem.Name] ~= nil
 		local prefix = (sniffed and "[READY] " or "[" .. status .. "] ")
-        local btnColor = sniffed and Color3.fromRGB(0, 255, 200) or color
+		local btnColor = sniffed and Color3.fromRGB(0, 255, 200) or color
 
 		createBtn(ScanScroll, prefix .. rem.Name, btnColor, function()
-			if status ~= "SAFE" or sniffed then 
-				CurrentRemote = rem; ActionPanel.Visible = true; ActionTitle.Text = " TARGET: "..rem.Name
-			else StatusLabel.Text = "Status: Remote is strictly protected." end
+			if sniffed or status == "VULN" then 
+				CurrentRemote = rem
+				ActionPanel.Visible = true
+				ActionTitle.Text = " TARGET: "..rem.Name
+				-- OTOMATIS JALANKAN FORCE ACCESS SAAT DIKLIK
+				ForceAccess(rem)
+			else 
+				StatusLabel.Text = "Status: Remote is strictly protected." 
+			end
 		end)
 
 		if i % 150 == 0 then 
