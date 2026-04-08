@@ -1,5 +1,6 @@
--- [[ NGOHI HYBRID FINAL ABSOLUTE - NO CUT & ANTI-KICK VERSION ]] --
--- Perbaikan: Anti-Spam Logic pada AI Scanner & Bypass Kick System
+-- [[ NGOHI HYBRID FINAL ABSOLUTE - TRUE FULL VERSION ]] --
+-- Fix: Anti-Adonis, Silent Scan, & Delta Mobile Optimization
+-- STATUS: NO CUT VERSION
 
 local lp = game:GetService("Players").LocalPlayer
 local runService = game:GetService("RunService")
@@ -10,34 +11,22 @@ local httpService = game:GetService("HttpService")
 local mouse = lp:GetMouse()
 local PlayerGui = lp:WaitForChild("PlayerGui")
 
--- [[ 1. ANTI-DETECTOR & BYPASS SYSTEM ]] --
+-- [[ 1. ULTRA SILENT BYPASS (ANTI-ADONIS) ]] --
 local function Bypass()
 	pcall(function()
-		local g = getgenv()
-		g.Check = function() return end
-		g.Detector = function() return end
-
-		-- Memproteksi LocalPlayer dari perintah Kick
+		-- Sembunyikan Kick dari deteksi Adonis indexInstance
 		local oldKick
-		oldKick = hookfunction(lp.Kick, function(self, reason)
-			if not checkcaller() then 
-				print("Server tried to kick you for: " .. tostring(reason))
+		oldKick = hookfunction(lp.Kick, newcclosure(function(self, reason)
+			if self == lp and not checkcaller() then 
 				return nil 
 			end
 			return oldKick(self, reason)
-		end)
+		end))
 
-		-- Sembunyikan MetaMethods untuk eksekutor Delta/Arceus
-		if setreadonly then
-			local mt = getrawmetatable(game)
-			setreadonly(mt, false)
-			local oldIndex = mt.__index
-			mt.__index = newcclosure(function(t, k)
-				if not checkcaller() and t == lp and k == "Kick" then
-					return function() end
-				end
-				return oldIndex(t, k)
-			end)
+		if getgenv then
+			local g = getgenv()
+			g.Check = function() return end
+			g.Detector = function() return end
 		end
 	end)
 end
@@ -57,6 +46,7 @@ local spinActive = false
 local infJumpActive = false
 local orbitActive = false
 local DiscoOn = false
+local NightOn = false
 local CurrentRemote = nil
 local ClickTP = false
 local Spam = false
@@ -65,6 +55,7 @@ local Spam = false
 local MainGui = Instance.new("ScreenGui", PlayerGui)
 MainGui.Name = "Ngohi_Absolute_System"
 MainGui.ResetOnSpawn = false
+MainGui.IgnoreGuiInset = true
 
 local function makeDraggable(frame, handle)
 	local dragStart, startPos
@@ -76,19 +67,19 @@ local function makeDraggable(frame, handle)
 			dragging = true
 			dragStart = input.Position
 			startPos = frame.Position
-			input.Changed:Connect(function()
-				if input.UserInputState == Enum.UserInputState.End then
-					dragging = false
-				end
-			end)
 		end
 	end)
 
 	uis.InputChanged:Connect(function(input)
 		if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
 			local delta = input.Position - dragStart
-			local endPos = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-			tweenService:Create(frame, TweenInfo.new(0.12, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), {Position = endPos}):Play()
+			frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+		end
+	end)
+
+	handle.InputEnded:Connect(function(input)
+		if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
+			dragging = false
 		end
 	end)
 end
@@ -194,37 +185,6 @@ TabLayout.FillDirection = Enum.FillDirection.Horizontal
 TabLayout.SortOrder = Enum.SortOrder.LayoutOrder
 TabLayout.Padding = UDim.new(0, 5)
 
-local btnT1 = Instance.new("TextButton", TabHolder)
-btnT1.Size = UDim2.new(0.33, -5, 1, 0)
-btnT1.Text = "FEATURES"
-btnT1.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-btnT1.TextColor3 = Color3.fromRGB(0, 255, 150)
-btnT1.Font = Enum.Font.GothamBold
-btnT1.TextSize = 12
-Instance.new("UICorner", btnT1)
-
-local btnT2 = Instance.new("TextButton", TabHolder)
-btnT2.Size = UDim2.new(0.33, -5, 1, 0)
-btnT2.Text = "AI SCANNER"
-btnT2.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-btnT2.TextColor3 = Color3.fromRGB(255, 50, 50)
-btnT2.Font = Enum.Font.GothamBold
-btnT2.TextSize = 12
-Instance.new("UICorner", btnT2)
-
-local btnT3 = Instance.new("TextButton", TabHolder)
-btnT3.Size = UDim2.new(0.33, -5, 1, 0)
-btnT3.Text = "SPECTATOR"
-btnT3.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-btnT3.TextColor3 = Color3.fromRGB(0, 150, 255)
-btnT3.Font = Enum.Font.GothamBold
-btnT3.TextSize = 12
-Instance.new("UICorner", btnT3)
-
-btnT1.MouseButton1Click:Connect(function() TabFitur.Visible = true; TabScan.Visible = false; TabSpectator.Visible = false end)
-btnT2.MouseButton1Click:Connect(function() TabFitur.Visible = false; TabScan.Visible = true; TabSpectator.Visible = false end)
-btnT3.MouseButton1Click:Connect(function() TabFitur.Visible = false; TabScan.Visible = false; TabSpectator.Visible = true end)
-
 local function updateBtn(b, state, onColor)
 	b.BackgroundColor3 = state and (onColor or Color3.fromRGB(0, 150, 80)) or Color3.fromRGB(40, 40, 40)
 end
@@ -241,6 +201,18 @@ local function createBtn(parent, txt, color, func)
 	b.MouseButton1Click:Connect(function() func(b) end)
 	return b
 end
+
+local btnT1 = createBtn(TabHolder, "FEATURES", Color3.fromRGB(30, 30, 30), function() TabFitur.Visible = true; TabScan.Visible = false; TabSpectator.Visible = false end)
+btnT1.Size = UDim2.new(0.33, -5, 1, 0)
+btnT1.TextColor3 = Color3.fromRGB(0, 255, 150)
+
+local btnT2 = createBtn(TabHolder, "AI SCANNER", Color3.fromRGB(25, 25, 25), function() TabFitur.Visible = false; TabScan.Visible = true; TabSpectator.Visible = false end)
+btnT2.Size = UDim2.new(0.33, -5, 1, 0)
+btnT2.TextColor3 = Color3.fromRGB(255, 50, 50)
+
+local btnT3 = createBtn(TabHolder, "SPECTATOR", Color3.fromRGB(25, 25, 25), function() TabFitur.Visible = false; TabScan.Visible = false; TabSpectator.Visible = true end)
+btnT3.Size = UDim2.new(0.33, -5, 1, 0)
+btnT3.TextColor3 = Color3.fromRGB(0, 150, 255)
 
 -- [[ 4. FEATURES IMPLEMENTATION ]] --
 createBtn(TabFitur, "RUN INFINITE YIELD", Color3.fromRGB(100, 0, 255), function()
@@ -381,12 +353,11 @@ end)
 
 createBtn(TabFitur, "DESTROY ALL GUI", Color3.fromRGB(60, 0, 0), function() MainGui:Destroy() end)
 
--- [[ 5. ADVANCED AI LOGIC SCANNER (ANTI-KICK REFIXED) ]] --
+-- [[ 5. ADVANCED REMOTE PANEL ]] --
 local ActionPanel = Instance.new("Frame", MainGui)
 ActionPanel.Size = UDim2.new(0, 230, 0, 340)
 ActionPanel.Position = UDim2.new(0.5, 210, 0.4, -170)
 ActionPanel.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
-ActionPanel.BorderSizePixel = 0
 ActionPanel.Visible = false
 ActionPanel.Active = true
 Instance.new("UICorner", ActionPanel)
@@ -423,7 +394,7 @@ local discoBtn = createBtn(ActionPanel, "DISCO MODE", Color3.fromRGB(200, 0, 200
 				local c = Color3.fromHSV(tick() % 5 / 5, 1, 1)
 				Fire(CurrentRemote, game.Lighting, "Ambient", c)
 				Fire(CurrentRemote, game.Lighting, "OutdoorAmbient", c)
-				task.wait(0.2) -- Jeda aman agar tidak kick
+				task.wait(0.2)
 			end
 		end)
 	end
@@ -438,21 +409,13 @@ nightBtn.Position = UDim2.new(0, 5, 0, 155)
 local closeBtn = createBtn(ActionPanel, "CLOSE PANEL", Color3.fromRGB(50, 50, 50), function() ActionPanel.Visible = false end)
 closeBtn.Position = UDim2.new(0, 5, 0, 205)
 
+-- [[ 6. SILENT AI SCANNER ]] --
 local function SmartAIAnalysis(rem)
 	local name = rem.Name:lower()
 	local vulnerabilityScore = 0
-
-	-- Scan Nama (Lokal, Aman dari Kick)
 	if name:find("admin") or name:find("set") or name:find("give") or name:find("money") then vulnerabilityScore = vulnerabilityScore + 50 end
 	if name:find("remote") or name:find("event") then vulnerabilityScore = vulnerabilityScore + 10 end
 	if name:find("health") or name:find("damage") or name:find("kill") then vulnerabilityScore = vulnerabilityScore + 40 end
-
-	-- Testing Payload (Dibatasi agar tidak spam)
-	if vulnerabilityScore >= 40 then
-		task.spawn(function()
-			pcall(function() rem:FireServer("check") end)
-		end)
-	end
 
 	if vulnerabilityScore >= 50 then return "VULN", Color3.fromRGB(0, 255, 120)
 	elseif vulnerabilityScore >= 20 then return "WEAK", Color3.fromRGB(255, 255, 0)
@@ -473,24 +436,23 @@ local function ScanRemotes()
 		local prefix = "[" .. status .. "] "
 
 		createBtn(ScanScroll, prefix .. rem.Name, color, function()
-			if status ~= "SAFE" then
+			if status ~= "SAFE" then 
 				CurrentRemote = rem; ActionPanel.Visible = true; ActionTitle.Text = " TARGET: "..rem.Name
 			else StatusLabel.Text = "Status: Remote is strictly protected." end
 		end)
 
-		-- Adaptive Delay (Menghindari Kick karena Scan Terlalu Cepat)
-		if i % 15 == 0 then 
+		if i % 150 == 0 then 
 			StatusLabel.Text = "Analyzed: " .. i .. "/" .. #allRemotes
-			task.wait(0.05) 
+			task.wait(0.1) 
 		end
 	end
 	StatusLabel.Text = "Scan Finished! Found " .. #allRemotes .. " targets."
 end
 
-local ScanBtn = createBtn(TabScan, "START SMART AI SCAN", Color3.fromRGB(0, 150, 0), ScanRemotes)
+local ScanBtn = createBtn(TabScan, "START SILENT SCAN", Color3.fromRGB(0, 150, 0), ScanRemotes)
 ScanBtn.Position = UDim2.new(0, 0, 1, -55)
 
--- [[ SPECTATOR LOGIC ]] --
+-- [[ 7. SPECTATOR LOGIC ]] --
 local selectedPlayer = nil
 local function RefreshPlayerList()
 	for _, v in pairs(SpecScroll:GetChildren()) do if v:IsA("TextButton") then v:Destroy() end end
@@ -525,7 +487,7 @@ end).Position = UDim2.new(0, 0, 0, 90)
 
 task.spawn(function() while true do RefreshPlayerList(); task.wait(5) end end)
 
--- [[ 6. CORE LOOPS ]] --
+-- [[ 8. CORE LOOPS ]] --
 mouse.Button1Down:Connect(function()
 	if ClickTP and uis:IsKeyDown(Enum.KeyCode.LeftControl) then
 		lp.Character.HumanoidRootPart.CFrame = CFrame.new(mouse.Hit.p) + Vector3.new(0, 3, 0)
