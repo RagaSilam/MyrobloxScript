@@ -12,36 +12,45 @@ local httpService = game:GetService("HttpService")
 local mouse = lp:GetMouse()
 local PlayerGui = lp:WaitForChild("PlayerGui")
 
--- [[ 1. ULTRA SILENT BYPASS (ANTI-ADONIS) ]] --
-local function Bypass()
-	pcall(function()
-		local oldKick
-		oldKick = hookfunction(lp.Kick, newcclosure(function(self, reason)
-			if self == lp and not checkcaller() then 
-				return nil 
+-- [[ 1. THE ADONIS SHUTDOWN PROTOCOL ]] --
+-- Mematikan sistem deteksi sebelum script utama berjalan
+local function StealthBypass()
+	local success, err = pcall(function()
+		-- Mencari dan melumpuhkan script deteksi Adonis di dalam PlayerScripts atau Character
+		for _, v in pairs(lp:GetDescendants()) do
+			if v:IsA("LocalScript") and (v.Name:find("Adonis") or v.Name:find("Handler") or v.Name:find("Client")) then
+				v.Disabled = true
+				v:Destroy()
 			end
-			return oldKick(self, reason)
-		end))
-
-		if getgenv then
-			local g = getgenv()
-			g.Check = function() return end
-			g.Detector = function() return end
 		end
 
-		-- Bypass Namecall (Menghindari deteksi pemanggilan remote)
+		-- Bypass Kick function secara lokal (Spoofing)
 		local mt = getrawmetatable(game)
 		local oldNamecall = mt.__namecall
 		setreadonly(mt, false)
+
 		mt.__namecall = newcclosure(function(self, ...)
 			local method = getnamecallmethod()
-			if method == "Kick" then return nil end
+			local args = {...}
+
+			-- Jika server memanggil Kick, kita blokir di sisi client
+			if method == "Kick" then 
+				warn("ADONIS TRIED TO KICK YOU: BLOCKED.")
+				return nil 
+			end
+
+			-- Menyembunyikan deteksi "getrawmetatable"
+			if method == "FireServer" and tostring(self) == "Adonis_Event" then
+				return nil
+			end
+
 			return oldNamecall(self, ...)
 		end)
 		setreadonly(mt, true)
 	end)
+	return success
 end
-Bypass()
+StealthBypass())
 
 -- [[ 2. AI LOGIC: REAL-TIME REMOTE SNIFFER ]] --
 -- Logika ini berfungsi mempelajari data yang diminta server secara otomatis
