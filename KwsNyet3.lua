@@ -1,4 +1,4 @@
--- [[ DELTA V8 ULTIMATE - TOUCH BYPASS EDITION ]] --
+-- [[ DELTA V8 ULTIMATE - STABLE TOUCH BYPASS ]] --
 local lp = game:GetService("Players").LocalPlayer
 local runService = game:GetService("RunService")
 local uis = game:GetService("UserInputService")
@@ -102,10 +102,10 @@ createBtn("FLY (SPACE=UP / Q=DOWN)", function(b)
 	end
 end)
 
--- LOGIKA TOUCH FLING INTEGRATED --
-createBtn("TOUCH FLING (BYPASS COLLIDE)", function(b)
+-- LOGIKA TOUCH FLING (STABLE VERSION) --
+createBtn("STABLE TOUCH FLING", function(b)
 	if not firetouchinterest then 
-		b.Text = "NOT SUPPORTED (NO DELTA)"; task.wait(1); b.Text = "TOUCH FLING (BYPASS COLLIDE)"
+		b.Text = "BUTUH EXECUTOR!"; task.wait(1); b.Text = "STABLE TOUCH FLING"
 		return 
 	end
 
@@ -127,23 +127,37 @@ createBtn("TOUCH FLING (BYPASS COLLIDE)", function(b)
 		local hrp = lp.Character.HumanoidRootPart
 		local oldPos = hrp.CFrame
 
+		-- Anchor Fisika (Biar Kita Gak Mental)
+		local anchorV = Instance.new("BodyVelocity", hrp)
+		anchorV.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+		anchorV.Velocity = Vector3.new(0, 0, 0)
+
+		local anchorG = Instance.new("BodyGyro", hrp)
+		anchorG.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
+		anchorG.CFrame = oldPos
+
 		task.spawn(function()
 			local start = tick()
 			while tick() - start < 1.8 do
 				runService.Heartbeat:Wait()
 				if target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
 					local tHRP = target.Character.HumanoidRootPart
-					-- 1. Snapping
+
+					-- Snapping & Rotasi Gila
 					hrp.CFrame = tHRP.CFrame * CFrame.Angles(math.rad(math.random(-180,180)), math.rad(math.random(-180,180)), 0)
-					-- 2. Spin Power
-					hrp.RotVelocity = Vector3.new(0, 15000, 0)
-					-- 3. Touch Simulation
-					for i = 1, 30 do
+					hrp.RotVelocity = Vector3.new(0, 25000, 0)
+
+					-- Brutal Touch Simulation (40x per frame)
+					for i = 1, 40 do
 						firetouchinterest(hrp, tHRP, 0)
 						firetouchinterest(hrp, tHRP, 1)
 					end
 				end
 			end
+
+			-- Cleanup
+			anchorV:Destroy()
+			anchorG:Destroy()
 			flingActive = false
 			hrp.RotVelocity = Vector3.new(0,0,0)
 			hrp.CFrame = oldPos
@@ -201,4 +215,4 @@ uis.JumpRequest:Connect(function()
 	if infJumpActive and lp.Character:FindFirstChild("Humanoid") then lp.Character.Humanoid:ChangeState("Jumping") end
 end)
 
-print("TOUCH BYPASS LOADED - READY FOR DELTA")
+print("DELTA V8 - STABLE BYPASS LOADED")
