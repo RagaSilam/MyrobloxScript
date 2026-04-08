@@ -22,7 +22,7 @@ local function Bypass()
 			end
 			return oldKick(self, reason)
 		end))
-
+		
 		if getgenv then
 			local g = getgenv()
 			g.Check = function() return end
@@ -76,7 +76,7 @@ local function makeDraggable(frame, handle)
 			frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
 		end
 	end)
-
+	
 	handle.InputEnded:Connect(function(input)
 		if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
 			dragging = false
@@ -425,7 +425,7 @@ end
 local function ScanRemotes()
 	StatusLabel.Text = "AI Status: Deep Analyzing..."
 	for _, v in pairs(ScanScroll:GetChildren()) do if v:IsA("TextButton") then v:Destroy() end end
-
+	
 	local allRemotes = {}
 	for _, v in pairs(game:GetDescendants()) do
 		if v:IsA("RemoteEvent") then table.insert(allRemotes, v) end
@@ -434,13 +434,13 @@ local function ScanRemotes()
 	for i, rem in ipairs(allRemotes) do
 		local status, color = SmartAIAnalysis(rem)
 		local prefix = "[" .. status .. "] "
-
+		
 		createBtn(ScanScroll, prefix .. rem.Name, color, function()
 			if status ~= "SAFE" then 
 				CurrentRemote = rem; ActionPanel.Visible = true; ActionTitle.Text = " TARGET: "..rem.Name
 			else StatusLabel.Text = "Status: Remote is strictly protected." end
 		end)
-
+		
 		if i % 150 == 0 then 
 			StatusLabel.Text = "Analyzed: " .. i .. "/" .. #allRemotes
 			task.wait(0.1) 
