@@ -1,4 +1,4 @@
--- [[ DELTA V8 ULTIMATE - PHYSICS OVERLOAD EDITION ]] --
+-- [[ DELTA V8 ULTIMATE - KINETIC PULSE EDITION ]] --
 local lp = game:GetService("Players").LocalPlayer
 local runService = game:GetService("RunService")
 local uis = game:GetService("UserInputService")
@@ -99,10 +99,10 @@ createBtn("FLY (SPACE=UP / Q=DOWN)", function(b)
     end
 end)
 
--- LOGIKA OVERLOAD: SISTEM PENTAL PAKSA --
-createBtn("OVERLOAD FLING (BYPASS)", function(b)
+-- LOGIKA: KINETIC PULSE (MEMAKSA TARGET MENTAL) --
+createBtn("KINETIC PULSE FLING", function(b)
     if not firetouchinterest then 
-        b.Text = "DELTA REQUIRED!"; task.wait(1); b.Text = "OVERLOAD FLING"
+        b.Text = "DELTA REQUIRED!"; task.wait(1); b.Text = "KINETIC PULSE FLING"
         return 
     end
 
@@ -124,50 +124,35 @@ createBtn("OVERLOAD FLING (BYPASS)", function(b)
         local hrp = lp.Character.HumanoidRootPart
         local oldPos = hrp.CFrame
         
-        -- Matikan Massa kita (biar gak mental)
-        for _, v in pairs(lp.Character:GetDescendants()) do
-            if v:IsA("BasePart") then v.Massless = true end
-        end
-
-        -- Paku Bumi
-        local bv = Instance.new("BodyVelocity", hrp)
-        bv.MaxForce = Vector3.new(9e9, 9e9, 9e9); bv.Velocity = Vector3.new(0, 0, 0)
-        
-        -- Gaya Putar Fisik (Real Physics Spin)
-        local bav = Instance.new("BodyAngularVelocity", hrp)
-        bav.P = 9e9; bav.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
-        bav.AngularVelocity = Vector3.new(0, 999999, 0)
+        -- [[ ANTI-RECOIL STABILIZER ]] --
+        local anchor = Instance.new("BodyPosition", hrp)
+        anchor.MaxForce = Vector3.new(9e9, 9e9, 9e9)
+        anchor.P = 1e6
+        anchor.Position = hrp.Position
 
         task.spawn(function()
             local start = tick()
-            while tick() - start < 2 do
-                runService.Heartbeat:Wait()
+            while tick() - start < 2.5 do
+                runService.RenderStepped:Wait()
                 if target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
                     local tHRP = target.Character.HumanoidRootPart
                     
-                    -- POSISI: Sedikit di BAWAH target (memaksa target naik ke atas/pental)
-                    hrp.CFrame = tHRP.CFrame * CFrame.new(0, -1.5, 0)
+                    -- Kita teleport di posisi target tapi dengan kecepatan raksasa ke arah luar
+                    hrp.CFrame = tHRP.CFrame * CFrame.new(0, 0.5, 0)
+                    hrp.Velocity = Vector3.new(9999999, 9999999, 9999999)
                     
-                    -- Velocity yang berdenyut (Pulse Velocity)
-                    hrp.Velocity = Vector3.new(999999, 999999, 999999)
-                    
-                    -- Sinyal Sentuh Brutal
-                    for i = 1, 80 do
+                    -- Simulasi sentuhan untuk mentransfer energi velocity ke target
+                    for i = 1, 40 do
                         firetouchinterest(hrp, tHRP, 0)
                         firetouchinterest(hrp, tHRP, 1)
                     end
                 end
             end
             
-            -- Cleanup
-            bv:Destroy(); bav:Destroy()
+            anchor:Destroy()
             flingActive = false
             hrp.Velocity = Vector3.new(0,0,0)
-            hrp.RotVelocity = Vector3.new(0,0,0)
             hrp.CFrame = oldPos
-            for _, v in pairs(lp.Character:GetDescendants()) do
-                if v:IsA("BasePart") then v.Massless = false end
-            end
             b.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
         end)
     end
@@ -222,4 +207,4 @@ uis.JumpRequest:Connect(function()
     if infJumpActive and lp.Character:FindFirstChild("Humanoid") then lp.Character.Humanoid:ChangeState("Jumping") end
 end)
 
-print("OVERLOAD EDITION LOADED")
+print("KINETIC PULSE LOADED")
