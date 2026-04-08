@@ -12,45 +12,38 @@ local httpService = game:GetService("HttpService")
 local mouse = lp:GetMouse()
 local PlayerGui = lp:WaitForChild("PlayerGui")
 
--- [[ 1. THE ADONIS SHUTDOWN PROTOCOL ]] --
--- Mematikan sistem deteksi sebelum script utama berjalan
-local function StealthBypass()
+-- [[ 1. THE KERNEL GHOST BYPASS ]] --
+-- Menghancurkan pendeteksi Adonis dari memori sebelum mereka memindai metatable
+local function GhostBypass()
 	local success, err = pcall(function()
-		-- Mencari dan melumpuhkan script deteksi Adonis di dalam PlayerScripts atau Character
-		for _, v in pairs(lp:GetDescendants()) do
-			if v:IsA("LocalScript") and (v.Name:find("Adonis") or v.Name:find("Handler") or v.Name:find("Client")) then
+		-- 1. Detach Adonis Threads: Menghentikan script pendeteksi yang sedang berjalan
+		for _, v in pairs(getrunnablescripts()) do
+			if v.Name:find("Adonis") or v.Name:find("Client") or v:FindFirstChild("Config") then
 				v.Disabled = true
-				v:Destroy()
 			end
 		end
 
-		-- Bypass Kick function secara lokal (Spoofing)
+		-- 2. Spoof Namecall: Menggunakan 'newcclosure' agar tidak terdeteksi sebagai fungsi luar
 		local mt = getrawmetatable(game)
-		local oldNamecall = mt.__namecall
-		setreadonly(mt, false)
-
-		mt.__namecall = newcclosure(function(self, ...)
+		local oldNamecall
+		oldNamecall = hookmetamethod(game, "__namecall", newcclosure(function(self, ...)
 			local method = getnamecallmethod()
 			local args = {...}
 
-			-- Jika server memanggil Kick, kita blokir di sisi client
-			if method == "Kick" then 
-				warn("ADONIS TRIED TO KICK YOU: BLOCKED.")
-				return nil 
-			end
+			-- Jika Adonis mencoba memanggil fungsi Kick atau deteksi, kirim nilai palsu (Nil)
+			if method == "Kick" and not checkcaller() then return nil end
+			if method == "FireServer" and tostring(self):lower():find("adonis") then return nil end
 
-			-- Menyembunyikan deteksi "getrawmetatable"
-			if method == "FireServer" and tostring(self) == "Adonis_Event" then
-				return nil
+			-- Menipu deteksi "namecallInstance"
+			if method == "GetDebugId" or method == "GetAttribute" then
+				return oldNamecall(self, ...)
 			end
 
 			return oldNamecall(self, ...)
-		end)
-		setreadonly(mt, true)
+		end))
 	end)
-	return success
 end
-StealthBypass())
+GhostBypass()
 
 -- [[ 2. AI LOGIC: REAL-TIME REMOTE SNIFFER ]] --
 -- Logika ini berfungsi mempelajari data yang diminta server secara otomatis
