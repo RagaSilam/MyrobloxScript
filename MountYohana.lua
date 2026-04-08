@@ -1,7 +1,6 @@
 -- [[ NGOHI HYBRID FINAL ABSOLUTE - TRUE FULL VERSION ]] --
 -- Fix: Anti-Adonis, Silent Scan, & Delta Mobile Optimization
--- STATUS: NO CUT VERSION / AI-INTEGRATED
--- [[ PART 1: INITIALIZATION & AI SNIFFER ENGINE ]] --
+-- STATUS: NO CUT VERSION / FULL INTEGRATED AI
 
 local lp = game:GetService("Players").LocalPlayer
 local runService = game:GetService("RunService")
@@ -12,64 +11,46 @@ local httpService = game:GetService("HttpService")
 local mouse = lp:GetMouse()
 local PlayerGui = lp:WaitForChild("PlayerGui")
 
--- [[ 1. THE ULTIMATE GHOST BYPASS ]] --
--- Menghapus pendeteksi Adonis sebelum mereka sempat memindai lingkungan
-local function GhostBypass()
+-- [[ 1. ULTRA SILENT BYPASS (ANTI-ADONIS) ]] --
+local function Bypass()
 	pcall(function()
-		-- Mencari script deteksi Adonis dan mematikannya secara paksa
-		for _, v in pairs(getrunnablescripts()) do
-			if v.Name:find("Adonis") or v.Name:find("Client") then
-				v.Disabled = true
+		-- Sembunyikan Kick dari deteksi Adonis indexInstance
+		local oldKick
+		oldKick = hookfunction(lp.Kick, newcclosure(function(self, reason)
+			if self == lp and not checkcaller() then 
+				return nil 
 			end
-		end
-
-		-- Bypass fungsi Kick dengan newcclosure agar terlihat seperti fungsi asli Roblox
-		local mt = getrawmetatable(game)
-		local oldNamecall
-		oldNamecall = hookmetamethod(game, "__namecall", newcclosure(function(self, ...)
-			local method = getnamecallmethod()
-
-			-- Jika Adonis mencoba melakukan Kick, kita abaikan secara total
-			if method == "Kick" and not checkcaller() then return nil end
-
-			-- Menipu deteksi namecallInstance dengan membiarkan panggilan internal tetap asli
-			if method == "GetDebugId" or method == "GetAttribute" then
-				return oldNamecall(self, ...)
-			end
-
-			return oldNamecall(self, ...)
+			return oldKick(self, reason)
 		end))
-	end)
-end
-GhostBypass()
 
--- [[ 2. SILENT AI SNIFFER (ZERO-FOOTPRINT) ]] --
--- Teknik ini menyimpan data tanpa mengubah alur eksekusi server
-local CapturedArgs = {}
-local function StartSilentSniffer()
-	local mt = getrawmetatable(game)
-	local oldNamecall = mt.__namecall
-	setreadonly(mt, false)
-
-	mt.__namecall = newcclosure(function(self, ...)
-		local method = getnamecallmethod()
-		if method == "FireServer" and not checkcaller() then
-			-- AI mempelajari argumen yang dikirim script asli game
-			if self:IsA("RemoteEvent") then
-				CapturedArgs[self.Name] = {Args = {...}, Obj = self}
-			end
+		if getgenv then
+			local g = getgenv()
+			g.Check = function() return end
+			g.Detector = function() return end
 		end
-		return oldNamecall(self, ...)
 	end)
-	setreadonly(mt, true)
 end
-task.spawn(StartSilentSniffer)
+Bypass()
 
--- [[ 3. MAIN INTERFACE DESIGN ]] --
-if PlayerGui:FindFirstChild("Ngohi_Ghost_System") then PlayerGui["Ngohi_Ghost_System"]:Destroy() end
-local MainGui = Instance.new("ScreenGui", PlayerGui); MainGui.Name = "Ngohi_Ghost_System"
+-- [[ LOGIKA STEALTH AI SNIFFER INTEGRATION ]] --
+-- Menangkap argumen secara pasif tanpa hook FireServer agar tidak terdeteksi
+local CapturedArgs = {}
+task.spawn(function()
+    game.DescendantAdded:Connect(function(v)
+        if v:IsA("RemoteEvent") then
+            v.OnClientEvent:Connect(function(...)
+                CapturedArgs[v.Name] = {Args = {...}, Remote = v}
+            end)
+        end
+    end)
+end)
 
--- [[ 3. GLOBAL STATES ]] --
+-- Cleanup UI Lama
+if PlayerGui:FindFirstChild("Ngohi_Absolute_System") then
+	PlayerGui["Ngohi_Absolute_System"]:Destroy()
+end
+
+-- [[ 2. GLOBAL STATES ]] --
 local flying = false
 local noclip = false
 local flingActive = false
@@ -83,7 +64,7 @@ local CurrentRemote = nil
 local ClickTP = false
 local Spam = false
 
--- [[ 4. GUI DESIGN - MAIN FRAME ]] --
+-- [[ 3. GUI DESIGN ]] --
 local MainGui = Instance.new("ScreenGui", PlayerGui)
 MainGui.Name = "Ngohi_Absolute_System"
 MainGui.ResetOnSpawn = false
@@ -128,7 +109,7 @@ makeDraggable(IconButton)
 local IconLogo = Instance.new("TextButton", IconButton)
 IconLogo.Size = UDim2.new(1, 0, 1, 0)
 IconLogo.BackgroundTransparency = 1
-IconLogo.Text = "N" -- Ngohi
+IconLogo.Text = "W"
 IconLogo.TextColor3 = Color3.fromRGB(0, 255, 120)
 IconLogo.Font = Enum.Font.GothamBold
 IconLogo.TextSize = 24
@@ -147,8 +128,6 @@ makeDraggable(MainFrame)
 IconLogo.MouseButton1Click:Connect(function()
 	MainFrame.Visible = not MainFrame.Visible
 end)
-
--- [[ PART 2: TABS, FEATURES & AI MANIPULATOR ]] --
 
 local TabHolder = Instance.new("Frame", MainFrame)
 TabHolder.Size = UDim2.new(1, 0, 0, 55)
@@ -176,7 +155,49 @@ TabSpectator.Position = UDim2.new(0, 10, 0, 65)
 TabSpectator.BackgroundTransparency = 1
 TabSpectator.Visible = false
 
--- UI Helper Functions
+local SpecScroll = Instance.new("ScrollingFrame", TabSpectator)
+SpecScroll.Size = UDim2.new(1, 0, 1, -120)
+SpecScroll.BackgroundColor3 = Color3.fromRGB(5, 5, 5)
+SpecScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+SpecScroll.ScrollBarThickness = 2
+local SpecList = Instance.new("UIListLayout", SpecScroll); SpecList.Padding = UDim.new(0, 4)
+SpecList:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+	SpecScroll.CanvasSize = UDim2.new(0, 0, 0, SpecList.AbsoluteContentSize.Y)
+end)
+
+local SelectedPlayerLabel = Instance.new("TextLabel", TabSpectator)
+SelectedPlayerLabel.Size = UDim2.new(1, 0, 0, 30)
+SelectedPlayerLabel.Position = UDim2.new(0, 0, 1, -115)
+SelectedPlayerLabel.Text = "Selected: None"
+SelectedPlayerLabel.TextColor3 = Color3.fromRGB(0, 255, 120)
+SelectedPlayerLabel.BackgroundTransparency = 1
+SelectedPlayerLabel.Font = Enum.Font.GothamMedium
+SelectedPlayerLabel.TextSize = 14
+
+local ScanScroll = Instance.new("ScrollingFrame", TabScan)
+ScanScroll.Size = UDim2.new(1, 0, 1, -110)
+ScanScroll.BackgroundColor3 = Color3.fromRGB(5, 5, 5)
+ScanScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+ScanScroll.ScrollBarThickness = 2
+local ScanList = Instance.new("UIListLayout", ScanScroll); ScanList.Padding = UDim.new(0, 4)
+ScanList:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+	ScanScroll.CanvasSize = UDim2.new(0, 0, 0, ScanList.AbsoluteContentSize.Y)
+end)
+
+local StatusLabel = Instance.new("TextLabel", TabScan)
+StatusLabel.Size = UDim2.new(1, 0, 0, 35)
+StatusLabel.Position = UDim2.new(0, 0, 1, -100)
+StatusLabel.Text = "Status: IDLE"
+StatusLabel.TextColor3 = Color3.fromRGB(0, 255, 120)
+StatusLabel.BackgroundTransparency = 1
+StatusLabel.Font = Enum.Font.Code
+StatusLabel.TextSize = 14
+
+local TabLayout = Instance.new("UIListLayout", TabHolder)
+TabLayout.FillDirection = Enum.FillDirection.Horizontal
+TabLayout.SortOrder = Enum.SortOrder.LayoutOrder
+TabLayout.Padding = UDim.new(0, 5)
+
 local function updateBtn(b, state, onColor)
 	b.BackgroundColor3 = state and (onColor or Color3.fromRGB(0, 150, 80)) or Color3.fromRGB(40, 40, 40)
 end
@@ -194,84 +215,38 @@ local function createBtn(parent, txt, color, func)
 	return b
 end
 
--- Tab Navigation Logic
 local btnT1 = createBtn(TabHolder, "FEATURES", Color3.fromRGB(30, 30, 30), function() TabFitur.Visible = true; TabScan.Visible = false; TabSpectator.Visible = false end)
-btnT1.Size = UDim2.new(0.33, -5, 1, 0); btnT1.TextColor3 = Color3.fromRGB(0, 255, 150)
+btnT1.Size = UDim2.new(0.33, -5, 1, 0)
+btnT1.TextColor3 = Color3.fromRGB(0, 255, 150)
 
 local btnT2 = createBtn(TabHolder, "AI SCANNER", Color3.fromRGB(25, 25, 25), function() TabFitur.Visible = false; TabScan.Visible = true; TabSpectator.Visible = false end)
-btnT2.Size = UDim2.new(0.33, -5, 1, 0); btnT2.TextColor3 = Color3.fromRGB(255, 50, 50)
+btnT2.Size = UDim2.new(0.33, -5, 1, 0)
+btnT2.TextColor3 = Color3.fromRGB(255, 50, 50)
 
 local btnT3 = createBtn(TabHolder, "SPECTATOR", Color3.fromRGB(25, 25, 25), function() TabFitur.Visible = false; TabScan.Visible = false; TabSpectator.Visible = true end)
-btnT3.Size = UDim2.new(0.33, -5, 1, 0); btnT3.TextColor3 = Color3.fromRGB(0, 150, 255)
+btnT3.Size = UDim2.new(0.33, -5, 1, 0)
+btnT3.TextColor3 = Color3.fromRGB(0, 150, 255)
 
--- [[ 5. ADVANCED AI MANIPULATOR PANEL ]] --
-local ActionPanel = Instance.new("Frame", MainGui)
-ActionPanel.Size = UDim2.new(0, 230, 0, 340)
-ActionPanel.Position = UDim2.new(0.5, 210, 0.4, -170)
-ActionPanel.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
-ActionPanel.Visible = false
-Instance.new("UICorner", ActionPanel)
-local ActionStroke = Instance.new("UIStroke", ActionPanel); ActionStroke.Color = Color3.fromRGB(255, 255, 0); ActionStroke.Thickness = 2
-makeDraggable(ActionPanel)
-
-local ActionTitle = Instance.new("TextLabel", ActionPanel)
-ActionTitle.Size = UDim2.new(1, 0, 0, 45); ActionTitle.Text = "AI CONTROL PANEL"; ActionTitle.BackgroundColor3 = Color3.fromRGB(25, 25, 25); ActionTitle.TextColor3 = Color3.fromRGB(255, 255, 0); ActionTitle.Font = Enum.Font.Code
-
--- LOGIKA MANIPULASI AI: Membangun ulang argumen yang diminta server
-local function SmartFire(mode, val)
-	if not CurrentRemote then return end
-	local data = CapturedArgs[CurrentRemote.Name]
-	local args = data and data.Arguments or {}
-
-	pcall(function()
-		for _, p in pairs(game.Players:GetPlayers()) do
-			if mode == "KILL" and p ~= lp and p.Character and p.Character:FindFirstChild("Humanoid") then
-				local spoofed = {}
-				-- AI mengisi slot argumen berdasarkan tipe data yang pernah ditangkap
-				for i, v in pairs(args) do
-					if typeof(v) == "Instance" and (v:IsA("Player") or v:IsA("Humanoid")) then
-						spoofed[i] = p.Character.Humanoid
-					elseif typeof(v) == "number" then
-						spoofed[i] = 0 -- Health ke 0
-					else
-						spoofed[i] = v -- Gunakan key asli (password/token) jika ada
-					end
-				end
-				if #spoofed == 0 then CurrentRemote:FireServer(p.Character.Humanoid, 0) else CurrentRemote:FireServer(unpack(spoofed)) end
-
-			elseif mode == "DISCO" then
-				local c = Color3.fromHSV(tick() % 5 / 5, 1, 1)
-				CurrentRemote:FireServer(game.Lighting, "Ambient", c)
-				CurrentRemote:FireServer(game.Lighting, "OutdoorAmbient", c)
-			end
-		end
-
-		if mode == "NIGHT" then
-			CurrentRemote:FireServer(game.Lighting, "ClockTime", 0)
-		end
-	end)
-end
-
-createBtn(ActionPanel, "AI KILL ALL", Color3.fromRGB(200, 0, 0), function() SmartFire("KILL") end).Position = UDim2.new(0, 5, 0, 55)
-
-createBtn(ActionPanel, "AI DISCO MODE", Color3.fromRGB(200, 0, 200), function(b)
-	DiscoOn = not DiscoOn
-	b.Text = "DISCO: " .. (DiscoOn and "ON" or "OFF")
-	task.spawn(function()
-		while DiscoOn do
-			SmartFire("DISCO")
-			task.wait(0.2)
-		end
-	end)
-end).Position = UDim2.new(0, 5, 0, 105)
-
-createBtn(ActionPanel, "AI NIGHT MODE", Color3.fromRGB(0, 0, 150), function() SmartFire("NIGHT") end).Position = UDim2.new(0, 5, 0, 155)
-
-createBtn(ActionPanel, "CLOSE PANEL", Color3.fromRGB(50, 50, 50), function() ActionPanel.Visible = false end).Position = UDim2.new(0, 5, 0, 205)
-
--- [[ 6. FEATURES LIST ]] --
+-- [[ 4. FEATURES IMPLEMENTATION ]] --
 createBtn(TabFitur, "RUN INFINITE YIELD", Color3.fromRGB(100, 0, 255), function()
 	loadstring(game:HttpGet('https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source'))()
+end)
+
+createBtn(TabFitur, "ORBIT AURA: OFF", nil, function(b)
+	orbitActive = not orbitActive
+	b.Text = "ORBIT AURA: " .. (orbitActive and "ON" or "OFF")
+	updateBtn(b, orbitActive, Color3.fromRGB(0, 255, 255))
+	if orbitActive then
+		local hl = Instance.new("Highlight", lp.Character)
+		hl.Name = "DeltaOrbit"
+		task.spawn(function()
+			while orbitActive do
+				runService.Heartbeat:Wait()
+				hl.FillColor = Color3.fromHSV(tick() % 5 / 5, 1, 1)
+			end
+			if lp.Character:FindFirstChild("DeltaOrbit") then lp.Character.DeltaOrbit:Destroy() end
+		end)
+	end
 end)
 
 createBtn(TabFitur, "FLY (SPACE/Q): OFF", nil, function(b)
@@ -301,6 +276,78 @@ createBtn(TabFitur, "FLY (SPACE/Q): OFF", nil, function(b)
 	end
 end)
 
+createBtn(TabFitur, "FLING CLOSEST", Color3.fromRGB(200, 0, 50), function()
+	local target = nil; local dist = 100
+	for _, v in pairs(game.Players:GetPlayers()) do
+		if v ~= lp and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
+			local d = (lp.Character.HumanoidRootPart.Position - v.Character.HumanoidRootPart.Position).Magnitude
+			if d < dist then dist = d; target = v end
+		end
+	end
+	if target and not flingActive then
+		flingActive = true
+		local hrp = lp.Character.HumanoidRootPart
+		local oldPos = hrp.CFrame
+		task.spawn(function()
+			local start = tick()
+			while tick() - start < 0.8 do
+				runService.Heartbeat:Wait()
+				if target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
+					hrp.CFrame = target.Character.HumanoidRootPart.CFrame
+					hrp.Velocity = Vector3.new(0, 50000, 50000)
+				end
+			end
+			flingActive = false; hrp.Velocity = Vector3.new(0,0,0); hrp.CFrame = oldPos
+		end)
+	end
+end)
+
+createBtn(TabFitur, "TP RANDOM PLAYER", Color3.fromRGB(100, 0, 200), function()
+	local p = game.Players:GetPlayers()
+	local target = p[math.random(#p)]
+	if target ~= lp and target.Character then
+		lp.Character.HumanoidRootPart.CFrame = target.Character.HumanoidRootPart.CFrame * CFrame.new(0, 5, 0)
+	end
+end)
+
+createBtn(TabFitur, "CLICK TP (CTRL+LCLICK): OFF", nil, function(b)
+	ClickTP = not ClickTP
+	b.Text = "CLICK TP: " .. (ClickTP and "ON" or "OFF")
+	updateBtn(b, ClickTP, Color3.fromRGB(0, 200, 255))
+end)
+
+createBtn(TabFitur, "SERVER SPIN: OFF", nil, function(b)
+	spinActive = not spinActive
+	b.Text = "SERVER SPIN: " .. (spinActive and "ON" or "OFF")
+	updateBtn(b, spinActive, Color3.fromRGB(150, 0, 150))
+	local hrp = lp.Character:FindFirstChild("HumanoidRootPart")
+	if hrp then
+		if hrp:FindFirstChild("DeltaSpin") then hrp.DeltaSpin:Destroy() end
+		if spinActive then
+			local av = Instance.new("AngularVelocity", hrp)
+			av.Name = "DeltaSpin"; av.MaxTorque = math.huge; av.AngularVelocity = Vector3.new(0, 100, 0)
+			av.Attachment0 = hrp:FindFirstChildOfClass("Attachment") or Instance.new("Attachment", hrp)
+		end
+	end
+end)
+
+createBtn(TabFitur, "CHAT SPAM: OFF", nil, function(b)
+	Spam = not Spam
+	b.Text = "CHAT SPAM: " .. (Spam and "ON" or "OFF")
+	updateBtn(b, Spam, Color3.fromRGB(150, 150, 0))
+	task.spawn(function()
+		while Spam do
+			local msg = "NGOHI POWER! ["..math.random(100,999).."]"
+			if game:GetService("TextChatService").ChatVersion == Enum.ChatVersion.TextChatService then
+				game:GetService("TextChatService").TextChannels.RBXGeneral:SendAsync(msg)
+			else
+				game:GetService("ReplicatedStorage").DefaultChatSystemChatEvents.SayMessageRequest:FireServer(msg, "All")
+			end
+			task.wait(3)
+		end
+	end)
+end)
+
 createBtn(TabFitur, "NOCLIP: OFF", nil, function(b)
 	noclip = not noclip
 	b.Text = "NOCLIP: " .. (noclip and "ON" or "OFF")
@@ -317,28 +364,87 @@ createBtn(TabFitur, "INF JUMP: OFF", nil, function(b)
 	updateBtn(b, infJumpActive)
 end)
 
--- [[ PART 3: AI SCANNER, SPECTATOR & CORE LOOPS ]] --
+createBtn(TabFitur, "DESTROY ALL GUI", Color3.fromRGB(60, 0, 0), function() MainGui:Destroy() end)
 
--- [[ 6. SILENT AI SCANNER LOGIC ]] --
+-- [[ 5. ADVANCED REMOTE PANEL ]] --
+local ActionPanel = Instance.new("Frame", MainGui)
+ActionPanel.Size = UDim2.new(0, 230, 0, 340)
+ActionPanel.Position = UDim2.new(0.5, 210, 0.4, -170)
+ActionPanel.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+ActionPanel.Visible = false
+ActionPanel.Active = true
+Instance.new("UICorner", ActionPanel)
+local ActionStroke = Instance.new("UIStroke", ActionPanel); ActionStroke.Color = Color3.fromRGB(255, 255, 0); ActionStroke.Thickness = 2
+makeDraggable(ActionPanel)
+
+local ActionTitle = Instance.new("TextLabel", ActionPanel)
+ActionTitle.Size = UDim2.new(1, 0, 0, 45)
+ActionTitle.Text = " REMOTE CONTROL"
+ActionTitle.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+ActionTitle.TextColor3 = Color3.fromRGB(255, 255, 0)
+ActionTitle.Font = Enum.Font.Code
+ActionTitle.TextSize = 13
+
+local function Fire(rem, target, prop, val)
+    -- AI Manipulation Check: Jika ada argumen tertangkap, gunakan itu.
+    local sniffed = CapturedArgs[rem.Name]
+	pcall(function() 
+        if sniffed then
+            rem:FireServer(target, unpack(sniffed.Args))
+        else
+            rem:FireServer(target, prop, val) 
+        end
+    end)
+end
+
+local killBtn = createBtn(ActionPanel, "KILL ALL", Color3.fromRGB(200, 0, 0), function()
+	for _, p in pairs(game.Players:GetPlayers()) do
+		if p.Character and p.Character:FindFirstChild("Humanoid") then
+			Fire(CurrentRemote, p.Character.Humanoid, "Health", 0)
+		end
+	end
+end)
+killBtn.Position = UDim2.new(0, 5, 0, 55)
+
+local discoBtn = createBtn(ActionPanel, "DISCO MODE", Color3.fromRGB(200, 0, 200), function(b)
+	DiscoOn = not DiscoOn
+	b.Text = "DISCO: " .. (DiscoOn and "ON" or "OFF")
+	if DiscoOn then
+		task.spawn(function()
+			while DiscoOn do
+				local c = Color3.fromHSV(tick() % 5 / 5, 1, 1)
+				Fire(CurrentRemote, game.Lighting, "Ambient", c)
+				Fire(CurrentRemote, game.Lighting, "OutdoorAmbient", c)
+				task.wait(0.2)
+			end
+		end)
+	end
+end)
+discoBtn.Position = UDim2.new(0, 5, 0, 105)
+
+local nightBtn = createBtn(ActionPanel, "NIGHT MODE", Color3.fromRGB(0, 0, 150), function()
+	Fire(CurrentRemote, game.Lighting, "ClockTime", 0)
+end)
+nightBtn.Position = UDim2.new(0, 5, 0, 155)
+
+local closeBtn = createBtn(ActionPanel, "CLOSE PANEL", Color3.fromRGB(50, 50, 50), function() ActionPanel.Visible = false end)
+closeBtn.Position = UDim2.new(0, 5, 0, 205)
+
+-- [[ 6. SILENT AI SCANNER ]] --
 local function SmartAIAnalysis(rem)
 	local name = rem.Name:lower()
 	local vulnerabilityScore = 0
-
-	-- AI mendeteksi pola penamaan yang biasanya tidak diproteksi ketat
 	if name:find("admin") or name:find("set") or name:find("give") or name:find("money") then vulnerabilityScore = vulnerabilityScore + 50 end
 	if name:find("remote") or name:find("event") then vulnerabilityScore = vulnerabilityScore + 10 end
 	if name:find("health") or name:find("damage") or name:find("kill") then vulnerabilityScore = vulnerabilityScore + 40 end
 
-	-- Cek jika AI Sniffer sudah menangkap data remote ini
-	if CapturedArgs[rem.Name] then vulnerabilityScore = vulnerabilityScore + 30 end
-
-	if vulnerabilityScore >= 60 then return "VULN", Color3.fromRGB(0, 255, 120)
-	elseif vulnerabilityScore >= 30 then return "WEAK", Color3.fromRGB(255, 255, 0)
+	if vulnerabilityScore >= 50 then return "VULN", Color3.fromRGB(0, 255, 120)
+	elseif vulnerabilityScore >= 20 then return "WEAK", Color3.fromRGB(255, 255, 0)
 	else return "SAFE", Color3.fromRGB(255, 50, 50) end
 end
 
 local function ScanRemotes()
-	StatusLabel.Text = "AI Status: Deep Analyzing Remotes..."
+	StatusLabel.Text = "AI Status: Deep Analyzing..."
 	for _, v in pairs(ScanScroll:GetChildren()) do if v:IsA("TextButton") then v:Destroy() end end
 
 	local allRemotes = {}
@@ -348,39 +454,35 @@ local function ScanRemotes()
 
 	for i, rem in ipairs(allRemotes) do
 		local status, color = SmartAIAnalysis(rem)
-		local prefix = (CapturedArgs[rem.Name] and "[SNIFFED] " or "["..status.."] ")
+        local sniffed = CapturedArgs[rem.Name] ~= nil
+		local prefix = (sniffed and "[READY] " or "[" .. status .. "] ")
+        local btnColor = sniffed and Color3.fromRGB(0, 255, 200) or color
 
-		createBtn(ScanScroll, prefix .. rem.Name, color, function()
-			if status ~= "SAFE" or CapturedArgs[rem.Name] then 
-				CurrentRemote = rem
-				ActionPanel.Visible = true
-				ActionTitle.Text = "TARGET: " .. rem.Name
-				StatusLabel.Text = "Selected: " .. rem.Name .. " (AI Ready)"
-			else 
-				StatusLabel.Text = "Status: Remote Secured by Server." 
-			end
+		createBtn(ScanScroll, prefix .. rem.Name, btnColor, function()
+			if status ~= "SAFE" or sniffed then 
+				CurrentRemote = rem; ActionPanel.Visible = true; ActionTitle.Text = " TARGET: "..rem.Name
+			else StatusLabel.Text = "Status: Remote is strictly protected." end
 		end)
 
-		if i % 100 == 0 then 
-			StatusLabel.Text = "Analyzing: " .. i .. "/" .. #allRemotes
-			task.wait(0.05) 
+		if i % 150 == 0 then 
+			StatusLabel.Text = "Analyzed: " .. i .. "/" .. #allRemotes
+			task.wait(0.1) 
 		end
 	end
-	StatusLabel.Text = "Scan Finished! Found " .. #allRemotes .. " remotes."
+	StatusLabel.Text = "Scan Finished! Found " .. #allRemotes .. " targets."
 end
 
-local ScanBtn = createBtn(TabScan, "START SILENT AI SCAN", Color3.fromRGB(0, 150, 0), ScanRemotes)
+local ScanBtn = createBtn(TabScan, "START SILENT SCAN", Color3.fromRGB(0, 150, 0), ScanRemotes)
 ScanBtn.Position = UDim2.new(0, 0, 1, -55)
 
--- [[ 7. SPECTATOR SYSTEM ]] --
+-- [[ 7. SPECTATOR LOGIC ]] --
 local selectedPlayer = nil
 local function RefreshPlayerList()
 	for _, v in pairs(SpecScroll:GetChildren()) do if v:IsA("TextButton") then v:Destroy() end end
 	for _, p in pairs(game.Players:GetPlayers()) do
 		if p ~= lp then
 			local pBtn = createBtn(SpecScroll, p.Name, nil, function()
-				selectedPlayer = p
-				SelectedPlayerLabel.Text = "Selected: " .. p.Name
+				selectedPlayer = p; SelectedPlayerLabel.Text = "Selected: " .. p.Name
 			end)
 			pBtn.Size = UDim2.new(1, -5, 0, 35)
 		end
@@ -396,7 +498,7 @@ createBtn(controlsFrame, "SPEC", Color3.fromRGB(0, 150, 255), function()
 	end
 end).Position = UDim2.new(0, 0, 0, 0)
 
-createBtn(controlsFrame, "TP TO PLAYER", Color3.fromRGB(100, 0, 200), function()
+createBtn(controlsFrame, "TELEPORT TO PLAYER", Color3.fromRGB(100, 0, 200), function()
 	if selectedPlayer and selectedPlayer.Character and selectedPlayer.Character:FindFirstChild("HumanoidRootPart") then
 		lp.Character.HumanoidRootPart.CFrame = selectedPlayer.Character.HumanoidRootPart.CFrame * CFrame.new(0, 3, 0)
 	end
@@ -406,10 +508,9 @@ createBtn(controlsFrame, "STOP SPEC", Color3.fromRGB(150, 0, 0), function()
 	workspace.CurrentCamera.CameraSubject = lp.Character:FindFirstChild("Humanoid")
 end).Position = UDim2.new(0, 0, 0, 90)
 
--- Refresh list setiap 5 detik
 task.spawn(function() while true do RefreshPlayerList(); task.wait(5) end end)
 
--- [[ 8. FINAL CORE LOOPS & INPUT ]] --
+-- [[ 8. CORE LOOPS ]] --
 mouse.Button1Down:Connect(function()
 	if ClickTP and uis:IsKeyDown(Enum.KeyCode.LeftControl) then
 		lp.Character.HumanoidRootPart.CFrame = CFrame.new(mouse.Hit.p) + Vector3.new(0, 3, 0)
@@ -419,10 +520,7 @@ end)
 runService.Stepped:Connect(function()
 	if lp.Character then
 		for _, v in pairs(lp.Character:GetDescendants()) do
-			if v:IsA("BasePart") then 
-				-- Noclip logic
-				v.CanCollide = not (noclip or flingActive) 
-			end
+			if v:IsA("BasePart") then v.CanCollide = not (noclip or flingActive) end
 		end
 	end
 end)
@@ -433,8 +531,4 @@ uis.JumpRequest:Connect(function()
 	end
 end)
 
--- Sinkronisasi Akhir
-createBtn(TabFitur, "DESTROY ALL GUI", Color3.fromRGB(60, 0, 0), function() MainGui:Destroy() end)
-
-print("--- NGOHI HYBRID FINAL ABSOLUTE: FULLY LOADED ---")
-warn("AI Sniffer is now active. Use game functions to capture keys.")
+print("--- NGOHI HYBRID FINAL ABSOLUTE LOADED ---")
