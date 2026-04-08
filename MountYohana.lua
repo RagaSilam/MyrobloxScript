@@ -385,6 +385,8 @@ ActionTitle.TextColor3 = Color3.fromRGB(255, 255, 0)
 ActionTitle.Font = Enum.Font.Code
 ActionTitle.TextSize = 13
 
+-- PART 2: REMOTE ENGINE & AGGRESSIVE AI BRUTE-FORCE
+
 local function Fire(rem, target, prop, val)
 	-- AI Manipulation Check: Jika ada argumen tertangkap, gunakan itu.
 	local sniffed = CapturedArgs[rem.Name]
@@ -394,6 +396,29 @@ local function Fire(rem, target, prop, val)
 		else
 			rem:FireServer(target, prop, val) 
 		end
+	end)
+end
+
+-- [[ AGGRESSIVE BRUTE-FORCE ENGINE ]] --
+local function StartBruteForce(rem)
+	StatusLabel.Text = "Status: AGGRESSIVE BRUTE-FORCING..."
+	StatusLabel.TextColor3 = Color3.fromRGB(255, 100, 0)
+
+	local payloads = {true, false, "Admin", "VIP", "Unlock", 999999, {["Admin"] = true}, {["Rank"] = 255}, lp}
+
+	task.spawn(function()
+		local success = false
+		-- Mencoba kombinasi cepat selama 2 detik
+		for _, p1 in pairs(payloads) do
+			pcall(function() rem:FireServer(p1) end)
+			for _, p2 in pairs(payloads) do
+				pcall(function() rem:FireServer(p1, p2) end)
+			end
+		end
+
+		task.wait(1)
+		StatusLabel.Text = "Status: IDLE (BYPASS ATTEMPTED)"
+		StatusLabel.TextColor3 = Color3.fromRGB(0, 255, 120)
 	end)
 end
 
@@ -443,27 +468,28 @@ local function SmartAIAnalysis(rem)
 	else return "SAFE", Color3.fromRGB(255, 50, 50) end
 end
 
--- LOGIKA BARU: FORCE ACCESS UNTUK REMOTE HIJAU
+-- LOGIKA UPDATE: FORCE ACCESS DENGAN AUTO BRUTE-FORCE 3 DETIK
 local function ForceAccess(rem)
-	StatusLabel.Text = "Status: FORCING ACCESS TO "..rem.Name.."..."
+	StatusLabel.Text = "Status: ANALYZING "..rem.Name.."..."
+	StatusLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 	local data = CapturedArgs[rem.Name]
+	local responseDetected = false
 
-	-- Strategi 1: Trigger Remote dengan Argumen Asli yang di-capture
-	if data then
-		pcall(function() rem:FireServer(unpack(data.Args)) end)
-	end
+	-- Strategi 1: Sniffed Data
+	if data then pcall(function() rem:FireServer(unpack(data.Args)) end) end
 
-	-- Strategi 2: Bruteforce Parameter Umum (VIP/Admin/Shop)
-	local n = rem.Name:lower()
-	if n:find("vip") or n:find("shop") or n:find("admin") or n:find("panel") then
-		pcall(function() rem:FireServer(true) end)
-		pcall(function() rem:FireServer("Unlock", true) end)
-		pcall(function() rem:FireServer(lp, "Admin") end)
-	end
+	-- Strategi 2: Parameter Umum
+	pcall(function() rem:FireServer(true) end)
+	pcall(function() rem:FireServer(lp, "Admin") end)
 
-	StatusLabel.Text = "Status: ACCESS COMMAND SENT!"
-	task.wait(1)
-	StatusLabel.Text = "Status: Monitoring Response..."
+	StatusLabel.Text = "Status: MONITORING RESPONSE..."
+
+	-- Timer 3 Detik: Jika tidak ada respon/macet, jalankan Brute-Force
+	task.delay(3, function()
+		if StatusLabel.Text == "Status: MONITORING RESPONSE..." then
+			StartBruteForce(rem)
+		end
+	end)
 end
 
 local function ScanRemotes()
@@ -486,7 +512,6 @@ local function ScanRemotes()
 				CurrentRemote = rem
 				ActionPanel.Visible = true
 				ActionTitle.Text = " TARGET: "..rem.Name
-				-- OTOMATIS JALANKAN FORCE ACCESS SAAT DIKLIK
 				ForceAccess(rem)
 			else 
 				StatusLabel.Text = "Status: Remote is strictly protected." 
