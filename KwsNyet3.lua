@@ -1,4 +1,4 @@
--- [[ DELTA V8 ULTIMATE - V3 GOD FLING EDITION ]] --
+-- [[ DELTA V8 ULTIMATE - PHYSICS OVERLOAD EDITION ]] --
 local lp = game:GetService("Players").LocalPlayer
 local runService = game:GetService("RunService")
 local uis = game:GetService("UserInputService")
@@ -99,10 +99,10 @@ createBtn("FLY (SPACE=UP / Q=DOWN)", function(b)
     end
 end)
 
--- LOGIKA V3: ANGULAR VELOCITY DISPLACEMENT --
-createBtn("V3 GOD FLING (NO RECOIL)", function(b)
+-- LOGIKA OVERLOAD: SISTEM PENTAL PAKSA --
+createBtn("OVERLOAD FLING (BYPASS)", function(b)
     if not firetouchinterest then 
-        b.Text = "DELTA REQUIRED!"; task.wait(1); b.Text = "V3 GOD FLING"
+        b.Text = "DELTA REQUIRED!"; task.wait(1); b.Text = "OVERLOAD FLING"
         return 
     end
 
@@ -124,10 +124,19 @@ createBtn("V3 GOD FLING (NO RECOIL)", function(b)
         local hrp = lp.Character.HumanoidRootPart
         local oldPos = hrp.CFrame
         
-        -- Paku Bumi Stabilizer
-        local anchorV = Instance.new("BodyVelocity", hrp)
-        anchorV.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
-        anchorV.Velocity = Vector3.new(0, 0, 0)
+        -- Matikan Massa kita (biar gak mental)
+        for _, v in pairs(lp.Character:GetDescendants()) do
+            if v:IsA("BasePart") then v.Massless = true end
+        end
+
+        -- Paku Bumi
+        local bv = Instance.new("BodyVelocity", hrp)
+        bv.MaxForce = Vector3.new(9e9, 9e9, 9e9); bv.Velocity = Vector3.new(0, 0, 0)
+        
+        -- Gaya Putar Fisik (Real Physics Spin)
+        local bav = Instance.new("BodyAngularVelocity", hrp)
+        bav.P = 9e9; bav.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
+        bav.AngularVelocity = Vector3.new(0, 999999, 0)
 
         task.spawn(function()
             local start = tick()
@@ -136,29 +145,29 @@ createBtn("V3 GOD FLING (NO RECOIL)", function(b)
                 if target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
                     local tHRP = target.Character.HumanoidRootPart
                     
-                    -- LOGIKA PINDAH-PINDAH POSISI CEPAT (DISPLACEMENT)
-                    -- Kita muter di sekeliling target dengan radius kecil buat nge-bug fisika dia
-                    local angle = tick() * 25 
-                    local offset = Vector3.new(math.cos(angle) * 1.5, 0, math.sin(angle) * 1.5)
-                    hrp.CFrame = CFrame.new(tHRP.Position + offset) * CFrame.Angles(0, angle, 0)
+                    -- POSISI: Sedikit di BAWAH target (memaksa target naik ke atas/pental)
+                    hrp.CFrame = tHRP.CFrame * CFrame.new(0, -1.5, 0)
                     
-                    -- Velocity yang nggak masuk akal
-                    hrp.Velocity = Vector3.new(1000000, 1000000, 1000000)
-                    hrp.RotVelocity = Vector3.new(0, 1000000, 0)
+                    -- Velocity yang berdenyut (Pulse Velocity)
+                    hrp.Velocity = Vector3.new(999999, 999999, 999999)
                     
-                    -- Simulasi sentuhan brutal
-                    for i = 1, 70 do
+                    -- Sinyal Sentuh Brutal
+                    for i = 1, 80 do
                         firetouchinterest(hrp, tHRP, 0)
                         firetouchinterest(hrp, tHRP, 1)
                     end
                 end
             end
             
-            anchorV:Destroy()
+            -- Cleanup
+            bv:Destroy(); bav:Destroy()
             flingActive = false
             hrp.Velocity = Vector3.new(0,0,0)
             hrp.RotVelocity = Vector3.new(0,0,0)
             hrp.CFrame = oldPos
+            for _, v in pairs(lp.Character:GetDescendants()) do
+                if v:IsA("BasePart") then v.Massless = false end
+            end
             b.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
         end)
     end
@@ -213,4 +222,4 @@ uis.JumpRequest:Connect(function()
     if infJumpActive and lp.Character:FindFirstChild("Humanoid") then lp.Character.Humanoid:ChangeState("Jumping") end
 end)
 
-print("V3 GOD FLING LOADED - NO RECOIL")
+print("OVERLOAD EDITION LOADED")
