@@ -16,7 +16,7 @@ local function Bypass()
 		local g = getgenv()
 		g.Check = function() return end
 		g.Detector = function() return end
-		
+
 		-- Memproteksi LocalPlayer dari perintah Kick
 		local oldKick
 		oldKick = hookfunction(lp.Kick, function(self, reason)
@@ -26,7 +26,7 @@ local function Bypass()
 			end
 			return oldKick(self, reason)
 		end)
-		
+
 		-- Sembunyikan MetaMethods untuk eksekutor Delta/Arceus
 		if setreadonly then
 			local mt = getrawmetatable(game)
@@ -441,7 +441,7 @@ closeBtn.Position = UDim2.new(0, 5, 0, 205)
 local function SmartAIAnalysis(rem)
 	local name = rem.Name:lower()
 	local vulnerabilityScore = 0
-	
+
 	-- Scan Nama (Lokal, Aman dari Kick)
 	if name:find("admin") or name:find("set") or name:find("give") or name:find("money") then vulnerabilityScore = vulnerabilityScore + 50 end
 	if name:find("remote") or name:find("event") then vulnerabilityScore = vulnerabilityScore + 10 end
@@ -462,7 +462,7 @@ end
 local function ScanRemotes()
 	StatusLabel.Text = "AI Status: Deep Analyzing..."
 	for _, v in pairs(ScanScroll:GetChildren()) do if v:IsA("TextButton") then v:Destroy() end end
-	
+
 	local allRemotes = {}
 	for _, v in pairs(game:GetDescendants()) do
 		if v:IsA("RemoteEvent") then table.insert(allRemotes, v) end
@@ -471,13 +471,13 @@ local function ScanRemotes()
 	for i, rem in ipairs(allRemotes) do
 		local status, color = SmartAIAnalysis(rem)
 		local prefix = "[" .. status .. "] "
-		
+
 		createBtn(ScanScroll, prefix .. rem.Name, color, function()
-			if status ~= "SAFE" then 
+			if status ~= "SAFE" then
 				CurrentRemote = rem; ActionPanel.Visible = true; ActionTitle.Text = " TARGET: "..rem.Name
 			else StatusLabel.Text = "Status: Remote is strictly protected." end
 		end)
-		
+
 		-- Adaptive Delay (Menghindari Kick karena Scan Terlalu Cepat)
 		if i % 15 == 0 then 
 			StatusLabel.Text = "Analyzed: " .. i .. "/" .. #allRemotes
