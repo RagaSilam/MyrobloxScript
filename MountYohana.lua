@@ -12,29 +12,27 @@ local httpService = game:GetService("HttpService")
 local mouse = lp:GetMouse()
 local PlayerGui = lp:WaitForChild("PlayerGui")
 
--- [[ 1. THE KERNEL GHOST BYPASS ]] --
--- Menghancurkan pendeteksi Adonis dari memori sebelum mereka memindai metatable
+-- [[ 1. THE ULTIMATE GHOST BYPASS ]] --
+-- Menghapus pendeteksi Adonis sebelum mereka sempat memindai lingkungan
 local function GhostBypass()
-	local success, err = pcall(function()
-		-- 1. Detach Adonis Threads: Menghentikan script pendeteksi yang sedang berjalan
+	pcall(function()
+		-- Mencari script deteksi Adonis dan mematikannya secara paksa
 		for _, v in pairs(getrunnablescripts()) do
-			if v.Name:find("Adonis") or v.Name:find("Client") or v:FindFirstChild("Config") then
+			if v.Name:find("Adonis") or v.Name:find("Client") then
 				v.Disabled = true
 			end
 		end
 
-		-- 2. Spoof Namecall: Menggunakan 'newcclosure' agar tidak terdeteksi sebagai fungsi luar
+		-- Bypass fungsi Kick dengan newcclosure agar terlihat seperti fungsi asli Roblox
 		local mt = getrawmetatable(game)
 		local oldNamecall
 		oldNamecall = hookmetamethod(game, "__namecall", newcclosure(function(self, ...)
 			local method = getnamecallmethod()
-			local args = {...}
 
-			-- Jika Adonis mencoba memanggil fungsi Kick atau deteksi, kirim nilai palsu (Nil)
+			-- Jika Adonis mencoba melakukan Kick, kita abaikan secara total
 			if method == "Kick" and not checkcaller() then return nil end
-			if method == "FireServer" and tostring(self):lower():find("adonis") then return nil end
 
-			-- Menipu deteksi "namecallInstance"
+			-- Menipu deteksi namecallInstance dengan membiarkan panggilan internal tetap asli
 			if method == "GetDebugId" or method == "GetAttribute" then
 				return oldNamecall(self, ...)
 			end
@@ -45,36 +43,31 @@ local function GhostBypass()
 end
 GhostBypass()
 
--- [[ 2. AI LOGIC: REAL-TIME REMOTE SNIFFER ]] --
--- Logika ini berfungsi mempelajari data yang diminta server secara otomatis
+-- [[ 2. SILENT AI SNIFFER (ZERO-FOOTPRINT) ]] --
+-- Teknik ini menyimpan data tanpa mengubah alur eksekusi server
 local CapturedArgs = {}
-local function StartAISniffer()
+local function StartSilentSniffer()
 	local mt = getrawmetatable(game)
 	local oldNamecall = mt.__namecall
 	setreadonly(mt, false)
 
 	mt.__namecall = newcclosure(function(self, ...)
 		local method = getnamecallmethod()
-		local args = {...}
-
-		-- Jika game (bukan cheat) mengirim perintah ke server, AI akan mencatat polanya
 		if method == "FireServer" and not checkcaller() then
-			CapturedArgs[self.Name] = {
-				Arguments = args,
-				Instance = self,
-				LastUpdate = tick()
-			}
+			-- AI mempelajari argumen yang dikirim script asli game
+			if self:IsA("RemoteEvent") then
+				CapturedArgs[self.Name] = {Args = {...}, Obj = self}
+			end
 		end
 		return oldNamecall(self, ...)
 	end)
 	setreadonly(mt, true)
 end
-StartAISniffer()
+task.spawn(StartSilentSniffer)
 
--- Cleanup UI Lama
-if PlayerGui:FindFirstChild("Ngohi_Absolute_System") then
-	PlayerGui["Ngohi_Absolute_System"]:Destroy()
-end
+-- [[ 3. MAIN INTERFACE DESIGN ]] --
+if PlayerGui:FindFirstChild("Ngohi_Ghost_System") then PlayerGui["Ngohi_Ghost_System"]:Destroy() end
+local MainGui = Instance.new("ScreenGui", PlayerGui); MainGui.Name = "Ngohi_Ghost_System"
 
 -- [[ 3. GLOBAL STATES ]] --
 local flying = false
